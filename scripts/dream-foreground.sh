@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# Run Dream in foreground (optional second terminal). npm @taubyte/dream uses `dream start`.
+# Run Dream in foreground — use a SECOND terminal. Blocks while Dream runs.
 set -euo pipefail
 SCRIPT_NAME="dream-foreground"
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 # shellcheck source=lib/common.sh
 source "${ROOT}/scripts/lib/common.sh"
 
-dream_install_npm
+bash "${ROOT}/scripts/ensure-tools.sh"
 need_dream
 docker_wait
 dream_resolve_universe
@@ -16,6 +16,11 @@ if dream_universe_ready "$DREAM_UNIVERSE"; then
   exit 0
 fi
 
-log "Running: dream start --universes ${DREAM_UNIVERSE}"
-log "Leave THIS terminal open. In another terminal: bash scripts/init.sh"
-exec dream start --universes "$DREAM_UNIVERSE"
+if dream_cli_has_start; then
+  log "dream start --universes ${DREAM_UNIVERSE}"
+  exec dream start --universes "$DREAM_UNIVERSE"
+fi
+
+log "dream new multiverse --universes ${DREAM_UNIVERSE}"
+log "Leave THIS terminal open. In another: bash scripts/init.sh"
+exec dream new multiverse --universes "$DREAM_UNIVERSE"

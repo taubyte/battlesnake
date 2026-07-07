@@ -12,7 +12,7 @@ bash "${ROOT}/scripts/ensure-tools.sh"
 
 need tau
 need dream
-need_docker
+docker_wait
 
 if [ ! -f "${HOME}/tau.yaml" ]; then
   bash "${ROOT}/scripts/tau-login.sh" || die "tau login required — run: bash scripts/tau-login.sh"

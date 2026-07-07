@@ -28,8 +28,8 @@ warn() { log "WARN: $*"; }
 
 need()         { command -v "$1" >/dev/null 2>&1 || die "'$1' not found."; }
 need_tau()     { [ -f "${HOME}/tau.yaml" ] || die "Not logged in. Run: bash scripts/tau-login.sh"; }
-need_docker()  { docker info >/dev/null 2>&1 || die "Docker not running (Docker-in-Docker required)."; }
-need_dream()   { command -v dream >/dev/null 2>&1 || die "'dream' not found — rebuild the Codespace."; }
+need_docker()  { docker_wait; }
+need_dream()   { command -v dream >/dev/null 2>&1 || die "'dream' not found — run: bash scripts/ensure-tools.sh"; }
 
 # ---------------------------------------------------------------------------
 # JSON helper
@@ -247,19 +247,23 @@ templates_sync() {
 }
 
 # ---------------------------------------------------------------------------
-# Dream cloud (@taubyte/dream from npm — `dream start`, universe default)
+# Dream — npm @taubyte/dream v1.1.x uses `dream new multiverse` (universe blackhole)
 # ---------------------------------------------------------------------------
 dream_cli_has_start() {
   dream --help 2>/dev/null | grep -qE '(^|[[:space:]])start([[:space:]]|$)'
 }
 
 dream_resolve_universe() {
-  DREAM_UNIVERSE="${TAUBYTE_DREAM_UNIVERSE:-default}"
+  if dream_cli_has_start; then
+    DREAM_UNIVERSE="${TAUBYTE_DREAM_UNIVERSE:-default}"
+  else
+    DREAM_UNIVERSE="${TAUBYTE_DREAM_UNIVERSE:-blackhole}"
+  fi
   export DREAM_UNIVERSE
 }
 
 dream_install_npm() {
-  if command -v dream >/dev/null 2>&1 && dream_cli_has_start; then
+  if command -v dream >/dev/null 2>&1 && dream --help 2>/dev/null | grep -q inject; then
     return 0
   fi
   local root
@@ -269,12 +273,20 @@ dream_install_npm() {
 
 docker_wait() {
   local i
-  for i in $(seq 1 45); do
+  for i in $(seq 1 90); do
     docker info >/dev/null 2>&1 && return 0
-    [ $((i % 5)) -eq 0 ] && log "Waiting for Docker... (${i}/45)"
+    if [ "$i" -le 5 ] || [ $((i % 15)) -eq 0 ]; then
+      sudo service docker start 2>/dev/null || true
+      sudo /etc/init.d/docker start 2>/dev/null || true
+      if [ -S /var/run/docker.sock ]; then
+        sudo chown root:docker /var/run/docker.sock 2>/dev/null || true
+        sudo chmod 660 /var/run/docker.sock 2>/dev/null || true
+      fi
+    fi
+    [ $((i % 10)) -eq 0 ] && log "Waiting for Docker... (${i}/90)"
     sleep 2
   done
-  die "Docker not ready — wait for Codespace Docker-in-Docker, then retry."
+  die "Docker not ready. Rebuild Codespace or wait 2 min, then: bash scripts/ensure-tools.sh"
 }
 
 dream_universe_ready() {
@@ -297,20 +309,24 @@ dream_ensure() {
   need_dream
   docker_wait
   dream_resolve_universe
-  dream_cli_has_start || die "Expected npm Dream with 'dream start' — run: bash post/init.sh"
-
-  log "Dream npm CLI | universe: ${DREAM_UNIVERSE}"
 
   if dream_universe_ready "$DREAM_UNIVERSE"; then
     log "Dream universe '${DREAM_UNIVERSE}' is ready."
     return 0
   fi
 
-  log "Starting Dream (dream start)..."
   mkdir -p "${HOME}/.dream"
-  nohup dream start --universes "$DREAM_UNIVERSE" >>"${DREAM_LOG}" 2>&1 &
-  sleep 8
-  dream new universe "$DREAM_UNIVERSE" >/dev/null 2>&1 || true
+  if dream_cli_has_start; then
+    log "Starting Dream (dream start) | universe: ${DREAM_UNIVERSE}"
+    nohup dream start --universes "$DREAM_UNIVERSE" >>"${DREAM_LOG}" 2>&1 &
+    sleep 8
+    dream new universe "$DREAM_UNIVERSE" >/dev/null 2>&1 || true
+  else
+    log "Starting Dream (dream new multiverse --daemon) | universe: ${DREAM_UNIVERSE}"
+    log "Tip: or run 'bash scripts/dream-foreground.sh' in a second terminal"
+    nohup dream new multiverse --daemon --universes "$DREAM_UNIVERSE" >>"${DREAM_LOG}" 2>&1 &
+    sleep 12
+  fi
 
   if dream_wait_universe "$DREAM_UNIVERSE" 36; then
     log "Dream universe '${DREAM_UNIVERSE}' is ready."
@@ -318,8 +334,8 @@ dream_ensure() {
   fi
 
   log "Dream log (${DREAM_LOG}):"
-  tail -n 20 "${DREAM_LOG}" 2>/dev/null || true
-  die "Dream timed out. Run: bash scripts/dream-foreground.sh in another terminal, then retry init."
+  tail -n 25 "${DREAM_LOG}" 2>/dev/null || true
+  die "Dream timed out. Terminal 2: bash scripts/dream-foreground.sh — then retry init"
 }
 
 cloud_select_dream() {
