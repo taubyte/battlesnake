@@ -2,7 +2,10 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 
-chmod +x "${ROOT}"/scripts/*.sh "${ROOT}"/scripts/lib/*.sh 2>/dev/null || true
+chmod +x "${ROOT}"/.devcontainer/*.sh "${ROOT}"/scripts/*.sh "${ROOT}"/scripts/lib/*.sh 2>/dev/null || true
+
+# Install tau + dream first (must succeed for tournament workflow)
+bash "${ROOT}/.devcontainer/install-tools.sh"
 
 if [ -n "${GITHUB_TOKEN:-}" ] && command -v gh >/dev/null 2>&1; then
   echo "$GITHUB_TOKEN" | gh auth login --with-token 2>/dev/null || true
@@ -23,8 +26,9 @@ bash "${ROOT}/scripts/tau-login.sh" 2>/dev/null || \
 
 echo ""
 echo " Ready."
-echo " bash scripts/init.sh   # once: Dream project + tau setup"
+echo " bash scripts/doctor.sh  # verify tau + dream + docker"
+echo " bash scripts/init.sh    # once: Dream project + tau setup"
 echo " edit snake.go"
-echo " bash scripts/test.sh   # local Dream build gate"
-echo " bash scripts/deploy.sh # deploy to aventr.cloud"
+echo " bash scripts/test.sh    # local Dream build gate"
+echo " bash scripts/deploy.sh  # deploy to aventr.cloud"
 echo ""

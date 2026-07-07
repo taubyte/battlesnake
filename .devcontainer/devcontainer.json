@@ -1,20 +1,26 @@
 {
   "name": "Taubyte Battlesnake Tournament",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu-22.04",
   "hostRequirements": {
     "cpus": 4,
     "memory": "8gb",
     "storage": "32gb"
-  },
-  "build": {
-    "dockerfile": "Dockerfile"
   },
   "features": {
     "ghcr.io/devcontainers/features/docker-in-docker:2": {
       "moby": true
     },
     "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "lts"
+    },
     "ghcr.io/devcontainers/features/go:1": {
       "version": "1.22"
+    },
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": false,
+      "username": "vscode",
+      "upgradePackages": true
     }
   },
   "customizations": {
@@ -31,6 +37,7 @@
   "containerEnv": {
     "TAUBYTE_PROJECT": "battlesnake",
     "TAUBYTE_REMOTE_CLOUD": "aventr.cloud",
-    "TAUBYTE_DREAM_UNIVERSE": "default"
+    "TAUBYTE_DREAM_UNIVERSE": "default",
+    "TAU_CLI_VERSION": "0.1.16"
   }
 }

@@ -96,7 +96,8 @@ bash scripts/deploy.sh    # deploy + live test
 | Dream build fails | Check output from `test.sh`, fix `snake.go`, retry |
 | Deploy fails | `bash scripts/logs.sh`, wait ~30s, retry `deploy.sh` |
 | `/move` returns empty | Wait ~30s for deploy to settle, then retry `deploy.sh` |
-| tau / dream not found | Rebuild the Codespace (**Codespaces: Rebuild Container**) |
+| tau / dream not found | `bash .devcontainer/install-tools.sh` then **Codespaces: Rebuild Container** |
+| Recovery mode / container error | Rebuild container; if still broken run `bash .devcontainer/install-tools.sh` |
 
 ---
 
