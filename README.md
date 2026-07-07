@@ -18,7 +18,7 @@ One terminal. You only ever edit **`snake.go`** — everything else is handled b
 
 1. Fork [taubyte/battlesnake](https://github.com/taubyte/battlesnake).
 2. On your fork: **Code -> Codespaces -> Create codespace on main** (4-core / 8 GB).
-3. Wait for the container to finish building (`tau`, `dream`, and `docker` are pre-installed).
+3. Wait for the container to finish building (`tau` and `dream` are pre-installed from vendored binaries, same as [taubyte/workshops](https://github.com/taubyte/workshops)).
 4. Taubyte agent skills from [taubyte/skills](https://github.com/taubyte/skills) are installed automatically.
 
 ## 2. Setup (once)
@@ -96,8 +96,8 @@ bash scripts/deploy.sh    # deploy + live test
 | Dream build fails | Check output from `test.sh`, fix `snake.go`, retry |
 | Deploy fails | `bash scripts/logs.sh`, wait ~30s, retry `deploy.sh` |
 | `/move` returns empty | Wait ~30s for deploy to settle, then retry `deploy.sh` |
-| tau / dream not found | `bash .devcontainer/install-tools.sh` then **Codespaces: Rebuild Container** |
-| Recovery mode / container error | Rebuild container; if still broken run `bash .devcontainer/install-tools.sh` |
+| tau / dream not found | `bash post/init.sh` then **Codespaces: Rebuild Container** |
+| Recovery mode / container error | Rebuild container; if still broken run `bash post/init.sh` |
 
 ---
 

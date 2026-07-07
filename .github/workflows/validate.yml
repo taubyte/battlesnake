@@ -20,6 +20,9 @@ jobs:
       - name: Verify required files exist
         run: |
           test -f snake.go
+          test -f post/tau
+          test -f post/dream
+          test -f post/init.sh
           test -f scripts/init.sh
           test -f scripts/test.sh
           test -f scripts/deploy.sh

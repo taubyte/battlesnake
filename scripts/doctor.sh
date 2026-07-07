@@ -7,7 +7,7 @@ source "${ROOT}/scripts/lib/common.sh"
 
 if ! command -v tau >/dev/null 2>&1 || ! command -v dream >/dev/null 2>&1; then
   log "Installing missing tooling..."
-  bash "${ROOT}/.devcontainer/install-tools.sh"
+  bash "${ROOT}/post/init.sh" 2>/dev/null || bash "${ROOT}/.devcontainer/install-tools.sh"
 fi
 
 ok=0

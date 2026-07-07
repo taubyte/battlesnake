@@ -2,10 +2,10 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 
-chmod +x "${ROOT}"/.devcontainer/*.sh "${ROOT}"/scripts/*.sh "${ROOT}"/scripts/lib/*.sh 2>/dev/null || true
+chmod +x "${ROOT}"/post/*.sh "${ROOT}"/.devcontainer/*.sh "${ROOT}"/scripts/*.sh "${ROOT}"/scripts/lib/*.sh 2>/dev/null || true
 
-# Install tau + dream first (must succeed for tournament workflow)
-bash "${ROOT}/.devcontainer/install-tools.sh"
+# Install vendored tau + dream (taubyte/workshops pattern — no network required)
+bash "${ROOT}/post/init.sh"
 
 if [ -n "${GITHUB_TOKEN:-}" ] && command -v gh >/dev/null 2>&1; then
   echo "$GITHUB_TOKEN" | gh auth login --with-token 2>/dev/null || true
