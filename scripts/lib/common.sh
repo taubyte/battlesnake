@@ -246,37 +246,80 @@ templates_sync() {
 }
 
 # ---------------------------------------------------------------------------
-# Dream cloud
+# Dream cloud (version-aware: new `dream start` vs legacy `dream new multiverse`)
 # ---------------------------------------------------------------------------
+dream_cli_has_start() {
+  dream --help 2>/dev/null | grep -qE '(^|[[:space:]])start([[:space:]]|$)'
+}
+
 dream_universe_ready() {
-  dream status universe "$DREAM_UNIVERSE" >/dev/null 2>&1
+  local name="$1"
+  dream status universe "$name" >/dev/null 2>&1
+}
+
+dream_any_universe_ready() {
+  dream_universe_ready "$DREAM_UNIVERSE" && return 0
+  dream_universe_ready "blackhole" && return 0
+  dream_universe_ready "default" && return 0
+  return 1
+}
+
+dream_ensure_universe() {
+  local name="$1"
+  if dream_universe_ready "$name"; then
+    return 0
+  fi
+  log "Creating Dream universe '${name}'..."
+  dream new universe "$name" >/dev/null 2>&1 || true
+  dream_universe_ready "$name"
 }
 
 dream_ensure() {
   need_dream
   need_docker
-  if dream_universe_ready; then
+
+  if dream_universe_ready "$DREAM_UNIVERSE"; then
     log "Dream universe '${DREAM_UNIVERSE}' is ready."
     return 0
   fi
-  log "Starting Dream..."
-  if dream --help 2>/dev/null | grep -qE '(^|[[:space:]])start([[:space:]]|$)'; then
-    dream start >/dev/null 2>&1 &
-    sleep 5
-    dream new universe "$DREAM_UNIVERSE" >/dev/null 2>&1 || true
+
+  if dream_cli_has_start; then
+    log "Starting Dream (new CLI: dream start)..."
+    dream start --universes "$DREAM_UNIVERSE" >/dev/null 2>&1 &
+    sleep 8
+    dream_ensure_universe "$DREAM_UNIVERSE" || true
   else
-    dream new multiverse --daemon --universes "$DREAM_UNIVERSE" >/dev/null 2>&1 &
+    log "Starting Dream (legacy/workshops CLI: dream new multiverse)..."
+    if dream_universe_ready "blackhole"; then
+      log "Legacy multiverse already running (universe: blackhole)."
+    elif dream_any_universe_ready; then
+      log "Legacy multiverse already running."
+    else
+      dream new multiverse --daemon --universes "$DREAM_UNIVERSE" >/dev/null 2>&1 &
+      sleep 10
+    fi
+    # Legacy default is blackhole; scripts/tau expect DREAM_UNIVERSE (default).
+    dream_ensure_universe "$DREAM_UNIVERSE" || true
   fi
+
   local i
   for i in $(seq 1 60); do
-    if dream_universe_ready; then
+    if dream_universe_ready "$DREAM_UNIVERSE"; then
       log "Dream universe '${DREAM_UNIVERSE}' is ready."
       return 0
     fi
-    [ $((i % 6)) -eq 0 ] && log "Waiting for Dream... (${i}/60)"
+    if ! dream_cli_has_start && dream_universe_ready "blackhole" && [ "$DREAM_UNIVERSE" != "blackhole" ]; then
+      dream_ensure_universe "$DREAM_UNIVERSE" || true
+    fi
+    [ $((i % 6)) -eq 0 ] && log "Waiting for Dream universe '${DREAM_UNIVERSE}'... (${i}/60)"
     sleep 5
   done
-  die "Dream did not become ready. Run: dream status universe ${DREAM_UNIVERSE}"
+
+  log "Dream status (blackhole):"
+  dream status universe blackhole 2>&1 | head -5 || true
+  log "Dream status (${DREAM_UNIVERSE}):"
+  dream status universe "$DREAM_UNIVERSE" 2>&1 | head -5 || true
+  die "Dream universe '${DREAM_UNIVERSE}' not ready. Legacy CLI? Run: dream new universe ${DREAM_UNIVERSE}"
 }
 
 cloud_select_dream() {

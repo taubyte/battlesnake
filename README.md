@@ -91,7 +91,7 @@ bash scripts/deploy.sh    # deploy + live test
 | Problem | Fix |
 | --- | --- |
 | tau / auth errors | `bash scripts/tau-login.sh` |
-| Dream not ready | `dream status universe default` then `bash scripts/init.sh` |
+| Dream not ready / `universe default does not exist` | Workshops binary is **legacy** Dream. Run `bash scripts/dream-start.sh` or `dream new universe default` |
 | Compile fails | Read Docker output, fix `snake.go`, run `compile.sh` again |
 | Dream build fails | Check output from `test.sh`, fix `snake.go`, retry |
 | Deploy fails | `bash scripts/logs.sh`, wait ~30s, retry `deploy.sh` |
