@@ -247,20 +247,23 @@ templates_sync() {
 }
 
 # ---------------------------------------------------------------------------
-# Dream cloud (version-aware: new `dream start` vs legacy `dream new multiverse`)
-# Legacy/workshops binary uses universe name **blackhole**, not default.
+# Dream cloud (@taubyte/dream from npm — `dream start`, universe default)
 # ---------------------------------------------------------------------------
 dream_cli_has_start() {
   dream --help 2>/dev/null | grep -qE '(^|[[:space:]])start([[:space:]]|$)'
 }
 
 dream_resolve_universe() {
-  if dream_cli_has_start; then
-    DREAM_UNIVERSE="${TAUBYTE_DREAM_UNIVERSE:-default}"
-  else
-    DREAM_UNIVERSE="${TAUBYTE_DREAM_UNIVERSE:-blackhole}"
-  fi
+  DREAM_UNIVERSE="${TAUBYTE_DREAM_UNIVERSE:-default}"
   export DREAM_UNIVERSE
+}
+
+dream_install_npm() {
+  command -v dream >/dev/null 2>&1 && return 0
+  command -v npm >/dev/null 2>&1 || die "npm missing — rebuild Codespace or run: bash post/init.sh"
+  log "Installing @taubyte/dream@latest from npm..."
+  sudo npm install -g @taubyte/dream@latest
+  command -v dream >/dev/null 2>&1 || die "dream install failed — run: bash post/init.sh"
 }
 
 docker_wait() {
@@ -289,39 +292,33 @@ dream_wait_universe() {
 }
 
 dream_ensure() {
+  dream_install_npm
   need_dream
   docker_wait
   dream_resolve_universe
-  log "Dream CLI: $(dream_cli_has_start && echo new || echo legacy/workshops) | universe: ${DREAM_UNIVERSE}"
+  dream_cli_has_start || die "Expected npm Dream with 'dream start' — run: bash post/init.sh"
+
+  log "Dream npm CLI | universe: ${DREAM_UNIVERSE}"
 
   if dream_universe_ready "$DREAM_UNIVERSE"; then
     log "Dream universe '${DREAM_UNIVERSE}' is ready."
     return 0
   fi
 
-  if dream_cli_has_start; then
-    log "Starting Dream (dream start)..."
-    mkdir -p "${HOME}/.dream"
-    nohup dream start --universes "$DREAM_UNIVERSE" >>"${DREAM_LOG}" 2>&1 &
-    sleep 8
-    dream new universe "$DREAM_UNIVERSE" >/dev/null 2>&1 || true
-  else
-    log ""
-    log " Legacy Dream is NOT running yet."
-    log " Open a SECOND terminal (split terminal) and run:"
-    log "   bash scripts/dream-foreground.sh"
-    log " Leave that terminal open — Dream runs in the foreground there."
-    log " This script will wait for universe '${DREAM_UNIVERSE}'..."
-    log ""
-  fi
+  log "Starting Dream (dream start)..."
+  mkdir -p "${HOME}/.dream"
+  nohup dream start --universes "$DREAM_UNIVERSE" >>"${DREAM_LOG}" 2>&1 &
+  sleep 8
+  dream new universe "$DREAM_UNIVERSE" >/dev/null 2>&1 || true
 
   if dream_wait_universe "$DREAM_UNIVERSE" 36; then
     log "Dream universe '${DREAM_UNIVERSE}' is ready."
     return 0
   fi
 
-  dream status universe "$DREAM_UNIVERSE" 2>&1 | head -8 || true
-  die "Dream timed out. Terminal 2: bash scripts/dream-foreground.sh  then retry: bash scripts/init.sh"
+  log "Dream log (${DREAM_LOG}):"
+  tail -n 20 "${DREAM_LOG}" 2>/dev/null || true
+  die "Dream timed out. Run: bash scripts/dream-foreground.sh in another terminal, then retry init."
 }
 
 cloud_select_dream() {

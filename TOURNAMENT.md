@@ -7,12 +7,11 @@ Quick reference for participants. Full docs: [README.md](README.md).
 | # | Action | Command |
 | --- | --- | --- |
 | 1 | Fork repo + open Codespace (4-core / 8 GB) | GitHub UI |
-| 2 | Start Dream (terminal 1, leave open) | `bash scripts/dream-foreground.sh` |
-| 3 | Setup (terminal 2) | `bash scripts/init.sh` |
-| 4 | Write your snake | Edit `snake.go` only |
-| 5 | Local Dream build gate | `bash scripts/test.sh` |
-| 6 | Deploy to aventr.cloud | `bash scripts/deploy.sh` |
-| 7 | Register snake | Paste `https://<fqdn>/move` at [play.battlesnake.com](https://play.battlesnake.com) |
+| 2 | One-time setup | `bash scripts/init.sh` |
+| 3 | Write your snake | Edit `snake.go` only |
+| 4 | Local Dream build gate | `bash scripts/test.sh` |
+| 5 | Deploy to aventr.cloud | `bash scripts/deploy.sh` |
+| 6 | Register snake | Paste `https://<fqdn>/move` at [play.battlesnake.com](https://play.battlesnake.com) |
 
 ## Iterate loop
 

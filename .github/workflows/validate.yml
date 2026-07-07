@@ -21,7 +21,6 @@ jobs:
         run: |
           test -f snake.go
           test -f post/tau
-          test -f post/dream
           test -f post/init.sh
           test -f scripts/init.sh
           test -f scripts/test.sh

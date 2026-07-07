@@ -18,27 +18,16 @@ One terminal. You only ever edit **`snake.go`** — everything else is handled b
 
 1. Fork [taubyte/battlesnake](https://github.com/taubyte/battlesnake).
 2. On your fork: **Code -> Codespaces -> Create codespace on main** (4-core / 8 GB).
-3. Wait for the container to finish building (`tau` and `dream` are pre-installed from vendored binaries, same as [taubyte/workshops](https://github.com/taubyte/workshops)). Post-create should finish in under a minute.
-4. Optional: `bash scripts/install-skills.sh` for Copilot agent skills (not run automatically).
+3. Wait for post-create (`tau` vendored + **`@taubyte/dream@latest` from npm**). Should finish in a few minutes.
+4. Optional: `bash scripts/install-skills.sh` for Copilot agent skills.
 
 ## 2. Setup (once)
 
-**Legacy Dream (workshops binary) — two terminals:**
-
-Terminal 1 (leave open):
-```bash
-bash scripts/dream-foreground.sh
-```
-
-Terminal 2:
 ```bash
 bash scripts/init.sh
 ```
 
-**New Dream CLI** — single terminal:
-```bash
-bash scripts/init.sh
-```
+Authenticates with `tau`, starts Dream (`dream start`), creates your Taubyte project, and runs the initial build.
 
 ## 3. Write your snake
 
@@ -89,7 +78,8 @@ bash scripts/deploy.sh    # deploy + live test
 
 | Command | What it does |
 | --- | --- |
-| `bash scripts/dream-foreground.sh` | **Terminal 1** — run Dream in foreground (legacy CLI) |
+| `bash scripts/doctor.sh` | Preflight — checks tau, dream, docker, gh |
+| `bash scripts/dream-foreground.sh` | Optional — run `dream start` in foreground |
 | `bash scripts/dream-status.sh` | Check Dream universe status |
 | `bash scripts/init.sh` | Once: Dream + tau project + templates + initial build |
 | `bash scripts/compile.sh` | Docker WASM compile check (no cloud) |
@@ -108,8 +98,8 @@ bash scripts/deploy.sh    # deploy + live test
 | Dream build fails | Check output from `test.sh`, fix `snake.go`, retry |
 | Deploy fails | `bash scripts/logs.sh`, wait ~30s, retry `deploy.sh` |
 | `/move` returns empty | Wait ~30s for deploy to settle, then retry `deploy.sh` |
-| tau / dream not found | `bash post/init.sh` then **Codespaces: Rebuild Container** |
-| Recovery mode / stuck on post-create | **Delete Codespace**, pull latest `main`, create a new one. Post-create is now just `post/init.sh` (like workshops). |
+| Dream stuck | `bash scripts/dream-status.sh` or `bash scripts/dream-foreground.sh` in a second terminal |
+| Recovery mode / stuck on post-create | Rebuild Codespace. Post-create installs tau + `npm i -g @taubyte/dream@latest` |
 
 ---
 

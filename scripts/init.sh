@@ -8,8 +8,11 @@ source "${ROOT}/scripts/lib/common.sh"
 # shellcheck source=lib/wait-build.sh
 source "${ROOT}/scripts/lib/wait-build.sh"
 
-if ! command -v tau >/dev/null 2>&1 || ! command -v dream >/dev/null 2>&1; then
-  log "Installing missing tooling..."
+if ! command -v tau >/dev/null 2>&1; then
+  log "Installing tau..."
+  bash "${ROOT}/post/init.sh" 2>/dev/null || bash "${ROOT}/.devcontainer/install-tools.sh"
+elif ! command -v dream >/dev/null 2>&1; then
+  log "Installing dream from npm..."
   bash "${ROOT}/post/init.sh" 2>/dev/null || bash "${ROOT}/.devcontainer/install-tools.sh"
 fi
 
