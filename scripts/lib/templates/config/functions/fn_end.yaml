@@ -1,0 +1,15 @@
+id: QmBs1FnEndBattlesnakeTaubyteDevContainerX9hTn18fpK
+description: Battlesnake POST /end — game over callback
+tags: []
+trigger:
+    type: http
+    method: POST
+    paths:
+        - /end
+execution:
+    timeout: 5s
+    memory: 32MB
+    call: End
+source: .
+domains:
+    - snake

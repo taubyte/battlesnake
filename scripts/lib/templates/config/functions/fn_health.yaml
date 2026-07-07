@@ -1,0 +1,15 @@
+id: QmBs1FnHealthBattlesnakeTaubyteDevContainer9hTn18
+description: GET / health check for Battlesnake URL validation
+tags: []
+trigger:
+    type: http
+    method: GET
+    paths:
+        - /
+execution:
+    timeout: 5s
+    memory: 32MB
+    call: Health
+source: .
+domains:
+    - snake

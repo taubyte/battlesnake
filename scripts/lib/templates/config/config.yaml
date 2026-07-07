@@ -1,0 +1,5 @@
+id: ""
+name: battlesnake
+description: Battlesnake snake bots as Taubyte serverless functions
+notification:
+    email: you@example.com

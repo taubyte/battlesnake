@@ -1,0 +1,17 @@
+# Generated Taubyte project (config + code repos)
+project/
+
+# Local build artifacts
+.build/
+.dreamland/
+
+# Tau profile (created in Codespace home, not repo)
+tau.yaml
+
+# Skills installer lockfile
+skills-lock.json
+.agents/
+
+# Env overrides
+.env
+.env.*

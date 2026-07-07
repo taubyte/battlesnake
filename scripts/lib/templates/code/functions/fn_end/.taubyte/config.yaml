@@ -1,0 +1,5 @@
+version: 1.00
+environment:
+  image: taubyte/go-wasi:latest
+workflow:
+  - build

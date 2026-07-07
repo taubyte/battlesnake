@@ -1,0 +1,66 @@
+{
+  "game": {
+    "id": "demo-game-id",
+    "ruleset": {
+      "name": "standard",
+      "version": "v1"
+    },
+    "timeout": 500,
+    "source": ""
+  },
+  "turn": 3,
+  "board": {
+    "height": 11,
+    "width": 11,
+    "snakes": [
+      {
+        "id": "you",
+        "name": "taubyte-snake",
+        "health": 100,
+        "body": [
+          { "x": 5, "y": 5 },
+          { "x": 5, "y": 6 },
+          { "x": 5, "y": 7 }
+        ],
+        "head": { "x": 5, "y": 5 },
+        "length": 3
+      },
+      {
+        "id": "enemy",
+        "name": "rival",
+        "health": 100,
+        "body": [
+          { "x": 8, "y": 8 },
+          { "x": 8, "y": 9 },
+          { "x": 8, "y": 10 }
+        ],
+        "head": { "x": 8, "y": 8 },
+        "length": 3
+      }
+    ],
+    "food": [
+      { "x": 5, "y": 4 },
+      { "x": 9, "y": 1 }
+    ],
+    "hazards": []
+  },
+  "you": {
+    "id": "you",
+    "name": "taubyte-snake",
+    "health": 100,
+    "body": [
+      { "x": 5, "y": 5 },
+      { "x": 5, "y": 6 },
+      { "x": 5, "y": 7 }
+    ],
+    "head": { "x": 5, "y": 5 },
+    "length": 3,
+    "shout": "",
+    "squad": "",
+    "customizations": {
+      "color": "#4C1D95",
+      "head": "shades",
+      "tail": "sharp"
+    }
+  }
+}

@@ -1,0 +1,15 @@
+id: QmBs1FnMoveBattlesnakeTaubyteDevContainerX9hTn18fp
+description: Battlesnake POST /move — decide your snake's next move
+tags: []
+trigger:
+    type: http
+    method: POST
+    paths:
+        - /move
+execution:
+    timeout: 5s
+    memory: 64MB
+    call: Move
+source: .
+domains:
+    - snake

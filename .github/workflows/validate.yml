@@ -1,0 +1,27 @@
+name: validate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-scripts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Shellcheck scripts
+        run: |
+          sudo apt-get update && sudo apt-get install -y shellcheck
+          find scripts -name '*.sh' -print0 | xargs -0 shellcheck -e SC1091
+
+      - name: Verify required files exist
+        run: |
+          test -f snake.go
+          test -f scripts/init.sh
+          test -f scripts/test.sh
+          test -f scripts/deploy.sh
+          test -f .devcontainer/devcontainer.json
+          test -d scripts/lib/templates
