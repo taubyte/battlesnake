@@ -12,6 +12,7 @@ TEMPLATES_DIR="${SCRIPT_LIB}/templates"
 
 REMOTE_CLOUD="${TAUBYTE_REMOTE_CLOUD:-aventr.cloud}"
 DREAM_UNIVERSE="${TAUBYTE_DREAM_UNIVERSE:-default}"
+DREAM_LOG="${HOME}/.dream/dream.log"
 PROJECT="${TAUBYTE_PROJECT:-battlesnake}"
 DOMAIN="${TAUBYTE_DOMAIN:-snake}"
 
@@ -247,9 +248,29 @@ templates_sync() {
 
 # ---------------------------------------------------------------------------
 # Dream cloud (version-aware: new `dream start` vs legacy `dream new multiverse`)
+# Legacy/workshops binary uses universe name **blackhole**, not default.
 # ---------------------------------------------------------------------------
 dream_cli_has_start() {
   dream --help 2>/dev/null | grep -qE '(^|[[:space:]])start([[:space:]]|$)'
+}
+
+dream_resolve_universe() {
+  if dream_cli_has_start; then
+    DREAM_UNIVERSE="${TAUBYTE_DREAM_UNIVERSE:-default}"
+  else
+    DREAM_UNIVERSE="${TAUBYTE_DREAM_UNIVERSE:-blackhole}"
+  fi
+  export DREAM_UNIVERSE
+}
+
+docker_wait() {
+  local i
+  for i in $(seq 1 45); do
+    docker info >/dev/null 2>&1 && return 0
+    [ $((i % 5)) -eq 0 ] && log "Waiting for Docker... (${i}/45)"
+    sleep 2
+  done
+  die "Docker not ready — wait for Codespace Docker-in-Docker, then retry."
 }
 
 dream_universe_ready() {
@@ -257,26 +278,21 @@ dream_universe_ready() {
   dream status universe "$name" >/dev/null 2>&1
 }
 
-dream_any_universe_ready() {
-  dream_universe_ready "$DREAM_UNIVERSE" && return 0
-  dream_universe_ready "blackhole" && return 0
-  dream_universe_ready "default" && return 0
+dream_wait_universe() {
+  local name="$1" max="${2:-36}" i
+  for i in $(seq 1 "$max"); do
+    dream_universe_ready "$name" && return 0
+    [ $((i % 3)) -eq 0 ] && log "Waiting for Dream universe '${name}'... (${i}/${max})"
+    sleep 5
+  done
   return 1
-}
-
-dream_ensure_universe() {
-  local name="$1"
-  if dream_universe_ready "$name"; then
-    return 0
-  fi
-  log "Creating Dream universe '${name}'..."
-  dream new universe "$name" >/dev/null 2>&1 || true
-  dream_universe_ready "$name"
 }
 
 dream_ensure() {
   need_dream
-  need_docker
+  docker_wait
+  dream_resolve_universe
+  log "Dream CLI: $(dream_cli_has_start && echo new || echo legacy/workshops) | universe: ${DREAM_UNIVERSE}"
 
   if dream_universe_ready "$DREAM_UNIVERSE"; then
     log "Dream universe '${DREAM_UNIVERSE}' is ready."
@@ -284,42 +300,28 @@ dream_ensure() {
   fi
 
   if dream_cli_has_start; then
-    log "Starting Dream (new CLI: dream start)..."
-    dream start --universes "$DREAM_UNIVERSE" >/dev/null 2>&1 &
+    log "Starting Dream (dream start)..."
+    mkdir -p "${HOME}/.dream"
+    nohup dream start --universes "$DREAM_UNIVERSE" >>"${DREAM_LOG}" 2>&1 &
     sleep 8
-    dream_ensure_universe "$DREAM_UNIVERSE" || true
+    dream new universe "$DREAM_UNIVERSE" >/dev/null 2>&1 || true
   else
-    log "Starting Dream (legacy/workshops CLI: dream new multiverse)..."
-    if dream_universe_ready "blackhole"; then
-      log "Legacy multiverse already running (universe: blackhole)."
-    elif dream_any_universe_ready; then
-      log "Legacy multiverse already running."
-    else
-      dream new multiverse --daemon --universes "$DREAM_UNIVERSE" >/dev/null 2>&1 &
-      sleep 10
-    fi
-    # Legacy default is blackhole; scripts/tau expect DREAM_UNIVERSE (default).
-    dream_ensure_universe "$DREAM_UNIVERSE" || true
+    log ""
+    log " Legacy Dream is NOT running yet."
+    log " Open a SECOND terminal (split terminal) and run:"
+    log "   bash scripts/dream-foreground.sh"
+    log " Leave that terminal open — Dream runs in the foreground there."
+    log " This script will wait for universe '${DREAM_UNIVERSE}'..."
+    log ""
   fi
 
-  local i
-  for i in $(seq 1 60); do
-    if dream_universe_ready "$DREAM_UNIVERSE"; then
-      log "Dream universe '${DREAM_UNIVERSE}' is ready."
-      return 0
-    fi
-    if ! dream_cli_has_start && dream_universe_ready "blackhole" && [ "$DREAM_UNIVERSE" != "blackhole" ]; then
-      dream_ensure_universe "$DREAM_UNIVERSE" || true
-    fi
-    [ $((i % 6)) -eq 0 ] && log "Waiting for Dream universe '${DREAM_UNIVERSE}'... (${i}/60)"
-    sleep 5
-  done
+  if dream_wait_universe "$DREAM_UNIVERSE" 36; then
+    log "Dream universe '${DREAM_UNIVERSE}' is ready."
+    return 0
+  fi
 
-  log "Dream status (blackhole):"
-  dream status universe blackhole 2>&1 | head -5 || true
-  log "Dream status (${DREAM_UNIVERSE}):"
-  dream status universe "$DREAM_UNIVERSE" 2>&1 | head -5 || true
-  die "Dream universe '${DREAM_UNIVERSE}' not ready. Legacy CLI? Run: dream new universe ${DREAM_UNIVERSE}"
+  dream status universe "$DREAM_UNIVERSE" 2>&1 | head -8 || true
+  die "Dream timed out. Terminal 2: bash scripts/dream-foreground.sh  then retry: bash scripts/init.sh"
 }
 
 cloud_select_dream() {

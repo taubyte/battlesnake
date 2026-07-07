@@ -23,11 +23,22 @@ One terminal. You only ever edit **`snake.go`** — everything else is handled b
 
 ## 2. Setup (once)
 
+**Legacy Dream (workshops binary) — two terminals:**
+
+Terminal 1 (leave open):
+```bash
+bash scripts/dream-foreground.sh
+```
+
+Terminal 2:
 ```bash
 bash scripts/init.sh
 ```
 
-Authenticates with `tau`, starts Dream, creates your Taubyte project (`tb_battlesnake` + `tb_code_battlesnake` repos), installs templates, and runs the initial Dream build.
+**New Dream CLI** — single terminal:
+```bash
+bash scripts/init.sh
+```
 
 ## 3. Write your snake
 
@@ -78,7 +89,8 @@ bash scripts/deploy.sh    # deploy + live test
 
 | Command | What it does |
 | --- | --- |
-| `bash scripts/doctor.sh` | Preflight — checks tau, dream, docker, gh |
+| `bash scripts/dream-foreground.sh` | **Terminal 1** — run Dream in foreground (legacy CLI) |
+| `bash scripts/dream-status.sh` | Check Dream universe status |
 | `bash scripts/init.sh` | Once: Dream + tau project + templates + initial build |
 | `bash scripts/compile.sh` | Docker WASM compile check (no cloud) |
 | `bash scripts/test.sh` | Compile + `dream inject push-all` + wait for build |
@@ -91,7 +103,7 @@ bash scripts/deploy.sh    # deploy + live test
 | Problem | Fix |
 | --- | --- |
 | tau / auth errors | `bash scripts/tau-login.sh` |
-| Dream not ready / `universe default does not exist` | Workshops binary is **legacy** Dream. Run `bash scripts/dream-start.sh` or `dream new universe default` |
+| Dream stuck / `default does not exist` | Workshops = legacy Dream. Terminal 1: `bash scripts/dream-foreground.sh` then Terminal 2: `bash scripts/init.sh` |
 | Compile fails | Read Docker output, fix `snake.go`, run `compile.sh` again |
 | Dream build fails | Check output from `test.sh`, fix `snake.go`, retry |
 | Deploy fails | `bash scripts/logs.sh`, wait ~30s, retry `deploy.sh` |

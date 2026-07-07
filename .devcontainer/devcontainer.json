@@ -26,6 +26,6 @@
   "containerEnv": {
     "TAUBYTE_PROJECT": "battlesnake",
     "TAUBYTE_REMOTE_CLOUD": "aventr.cloud",
-    "TAUBYTE_DREAM_UNIVERSE": "default"
+    "TAUBYTE_DREAM_UNIVERSE": "blackhole"
   }
 }
